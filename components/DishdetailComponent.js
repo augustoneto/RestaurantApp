@@ -3,7 +3,7 @@ import { Text, View, ScrollView, FlatList, Button, Modal, StyleSheet } from 'rea
 import { Card, Icon, Rating, Input } from 'react-native-elements';
 import { connect } from 'react-redux';
 import { baseUrl } from '../shared/baseUrl';
-import { postFavorite } from '../redux/ActionCreators';
+import { postFavorite, postComment } from '../redux/ActionCreators';
 
 const mapStateToProps = state => {
     return {
@@ -14,7 +14,8 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = dispatch => ({
-    postFavorite: (dishId) => dispatch(postFavorite(dishId))
+    postFavorite: (dishId) => dispatch(postFavorite(dishId)),
+    postComment: (dishId, rating, author, comment) => dispatch(postComment(dishId, rating, author, comment))
 })
 
 function RenderDish(props) {
@@ -88,8 +89,8 @@ class Dishdetail extends Component {
         this.state = {
             favorites: [],
             rating: 1,
-            //author: '',
-            //comment: '',
+            author: '',
+            comment: '',
             showModal: false
         };
     }
@@ -102,9 +103,28 @@ class Dishdetail extends Component {
         title: 'Dish Details'
     };
 
-    handleComment() {
-        //console.log(JSON.stringify(this.state));
+    setRating(rating) {
+        this.setState({ rating });
+    }
+    
+    setAuthor(author) {
+        this.setState({ author });
+    }
+
+    setComment(comment) {
+        this.setState({ comment });
+    }
+
+    handleComment(dishId) {
+        console.log(JSON.stringify(this.state));
         this.toggleModal();
+        this.props.postComment(dishId, this.state.rating, this.state.author, this.state.comment);
+        this.resetForm();
+    }
+
+    cancelComment() {
+        this.toggleModal(); 
+        this.resetForm();
     }
 
     toggleModal() {
@@ -114,14 +134,10 @@ class Dishdetail extends Component {
     resetForm() {
         this.setState({
             rating: 1,
-            //author: '',
-            //comment: '',
+            author: '',
+            comment: '',
             showModal: false
         });
-    }
-
-    ratingCompleted(rating) {
-        console.log("Rating is: " + rating)
     }
 
     render () {
@@ -143,21 +159,35 @@ class Dishdetail extends Component {
                             startingValue={1}
                             fractions={0}
                             showRating
-                            onFinishRating={this.ratingCompleted}
+                            onFinishRating={rating => this.setRating(rating)}
                             />
                         <Input
                             placeholder='Author'
+                            leftIcon={(
+                                <Icon
+                                    name="user"
+                                    type="font-awesome"
+                                />
+                            )}
+                            onChangeText={author => this.setAuthor(author)}
                             />
                         <Input
                             placeholder='Comment'
+                            leftIcon={(
+                                <Icon
+                                  name="comment"
+                                  type="font-awesome"
+                                />
+                            )}
+                            onChangeText={comment => this.setComment(comment)}
                             />
                         <Button
-                            onPress={() => this.handleComment()}
+                            onPress={() => this.handleComment(dishId)}
                             title="Submit"
                             color="#512DA8"
                             />
                         <Button 
-                            onPress = {() =>{this.toggleModal(); this.resetForm();}}
+                            onPress = {() => this.cancelComment()}
                             color="#6C757D"
                             title="Cancel" 
                             />
